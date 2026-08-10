@@ -1,6 +1,7 @@
 # Criação do Projeto
 * Criado o projeto laravel; 
 * Criado toda estrutura de players e clubs; 
+* Criado arquivo IA-prompts.ai onde ficará todos os prompts utilizados e os outputs da IA; 
 
 * `php artisan make:model Player -a`
 * `php artisan make:model Club -a`
@@ -96,3 +97,114 @@ Essa arquitetura permite processar arquivos de grande volume sem carregar todo o
 Como resultado, o fluxo possui maior **escalabilidade**, **resiliência a registros inválidos** e melhor controle sobre o consumo de recursos durante a importação.
 
 Até o momento, não precisei utilizar IA, pois este é um fluxo com o qual já tenho bastante familiaridade no desenvolvimento de back-end. Optei por utilizar PHP e Vue.js por serem tecnologias com as quais tenho trabalhado com maior frequência atualmente e nas quais possuo mais experiência e domínio.
+
+## Fluxo do `ExportController`
+
+O `ExportController` é responsável pela exportação dos dados de clubes e jogadores em formato CSV.
+
+### Entrada
+
+As exportações são realizadas através das seguintes rotas:
+
+```http
+GET /export?file=clubs
+GET /export?file=players
+```
+
+A rota é protegida pelos middlewares `auth` e `verified` , garantindo que apenas usuários autenticados e com e-mail verificado possam realizar as exportações.
+
+O parâmetro `file` determina qual tipo de arquivo será gerado:
+
+* `clubs` → exportação de clubes; 
+* `players` → exportação de jogadores.
+
+---
+
+### `exportClubs()` — Geração do `clubs.csv`
+
+O método `exportClubs()` é responsável pela geração do arquivo `clubs.csv` .
+
+O fluxo realiza as seguintes etapas:
+
+1. Monta a query utilizando `Club::query()`;
+2. Aplica o filtro de campeonato, permitindo apenas clubes da **Série A** e **Série B**;
+3. Percorre os registros utilizando `lazyById()`, evitando carregar todos os clubes em memória;
+4. Escreve cada registro diretamente no CSV utilizando `fputcsv()`;
+5. Retorna o arquivo através de uma `StreamedResponse`.
+
+A utilização de `lazyById()` permite realizar a exportação de grandes volumes de dados com baixo consumo de memória.
+
+---
+
+### `exportPlayers()` — Geração do `players.csv`
+
+O método `exportPlayers()` é responsável pela geração do arquivo `players.csv` .
+
+A consulta utiliza um `join` com a tabela `clubs` :
+
+```php
+Player::query()
+    ->join('clubs', 'clubs.id', '=', 'players.club_id')
+```
+
+Essa abordagem garante duas regras de negócio simultaneamente:
+
+* **Somente jogadores pertencentes a clubes da Série A ou Série B são exportados**, através do filtro aplicado em `clubs.championship`; 
+* **Clubes sem jogadores não geram nenhuma linha no arquivo**, pois o `join` utilizado é um `INNER JOIN`.
+
+O processamento segue a mesma estratégia utilizada na exportação de clubes:
+
+1. Monta a query com o `join` entre `players` e `clubs`; 
+2. Aplica o filtro de campeonato;
+3. Percorre os registros utilizando `lazyById()`;
+4. Escreve cada registro diretamente no CSV utilizando `fputcsv()`;
+5. Retorna o resultado através de uma `StreamedResponse`.
+
+---
+
+## Estratégia de Streaming
+
+As duas exportações utilizam `lazyById()` em conjunto com `StreamedResponse` e `fputcsv()` .
+
+Essa estratégia evita que todos os registros sejam carregados simultaneamente na memória.
+
+```text
+Requisição HTTP
+       │
+       ▼
+  ExportController
+       │
+       ▼
+ index() valida ?file=
+       │
+       ├── "clubs"
+       │      │
+       │      ▼
+       │   exportClubs()
+       │      │
+       │      ├── Club::query()
+       │      ├── Filtro Série A/B
+       │      ├── lazyById()
+       │      ├── fputcsv()
+       │      └── StreamedResponse
+       │
+       └── "players"
+              │
+              ▼
+          exportPlayers()
+              │
+              ├── Player::query()
+              ├── JOIN clubs
+              ├── Filtro Série A/B
+              ├── lazyById()
+              ├── fputcsv()
+              └── StreamedResponse
+```
+
+### Benefícios da abordagem
+
+* **Baixo consumo de memória:** os registros são processados progressivamente; 
+* **Suporte a grandes volumes:** evita carregar todo o resultado da consulta em memória; 
+* **Resposta em streaming:** o arquivo pode ser enviado ao cliente conforme os dados são processados; 
+* **Aplicação das regras de negócio na query:** os filtros são executados diretamente no banco de dados; 
+* **Maior eficiência:** evita processamento desnecessário de registros que não serão exportados.
