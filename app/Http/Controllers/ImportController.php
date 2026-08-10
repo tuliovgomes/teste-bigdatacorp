@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ImportClubsRequest;
 use App\Jobs\ImportClubsFileJob;
+use Inertia\Inertia;
 
 class ImportController extends Controller
 {
@@ -13,6 +14,11 @@ class ImportController extends Controller
 
         ImportClubsFileJob::dispatch($path);
 
-        return back()->with('success', 'Importação iniciada. Os clubes e jogadores serão processados em segundo plano.');
+        Inertia::flash('toast', [
+            'type' => 'success',
+            'message' => 'Importação iniciada. Os clubes e jogadores serão processados em segundo plano.',
+        ]);
+
+        return back();
     }
 }
