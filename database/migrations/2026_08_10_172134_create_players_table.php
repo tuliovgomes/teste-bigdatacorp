@@ -22,6 +22,9 @@ return new class extends Migration
             $table->integer('shirt_number');
             $table->string('nationality');
             $table->integer('market_value');
+
+            $table->unsignedBigInteger('club_id');
+            $table->foreign('club_id')->references('id')->on('clubs')->onDelete('cascade');
             $table->timestamps();
         });
     }
