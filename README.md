@@ -41,6 +41,10 @@ http://localhost:8000
 ## Exportar dados
 * <img width="1915" height="384" alt="image" src="https://github.com/user-attachments/assets/fffb910e-8da8-449f-a134-a31285d52c29" />
 
+## Importar dados
+* <img width="1898" height="457" alt="image" src="https://github.com/user-attachments/assets/9b077f57-185e-4dae-8708-242ad3ebe84b" />
+
+
 ## CSV
 [players.csv](https://github.com/user-attachments/files/30921159/players.csv)
 
