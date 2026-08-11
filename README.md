@@ -50,6 +50,6 @@ http://localhost:8000
 # Contexto
 
 * Durante o desenvolvimento deste desafio utilizei IA de forma pontual e limitada,a maior parte da implementação foi realizada sem o auxílio de IA, por se tratar de um fluxo com o qual já tenho familiaridade e que faz parte de situações comuns do desenvolvimento de back-end no dia a dia, para visualizar onde utilizei IA acesse [aqui](IA-prompts.ai)
-* Mo arquivo (project-steps.md)[project-steps.md] descrevi o passo a passo que estava fazendo enquanto desenvolvia cada funcionalidade, assim como cada fluxo e função do sistema bem detalhado.
+* Mo arquivo [steps](project-steps.md) descrevi o passo a passo que estava fazendo enquanto desenvolvia cada funcionalidade, assim como cada fluxo e função do sistema bem detalhado.
 
 
