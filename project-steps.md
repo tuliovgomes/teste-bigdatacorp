@@ -208,3 +208,146 @@ Requisição HTTP
 * **Resposta em streaming:** o arquivo pode ser enviado ao cliente conforme os dados são processados; 
 * **Aplicação das regras de negócio na query:** os filtros são executados diretamente no banco de dados; 
 * **Maior eficiência:** evita processamento desnecessário de registros que não serão exportados.
+# Fornt-end
+* Utilizando Vue.js e TypeScript, crie um front simples só para exibir tres cards: Total de clubes; Total de jogadores; Clubes por série.
+* Criado Listagem Clubes e jogadores.
+* Criado Modal para importar e exportar os dados.
+# Docker
+* Utilizei a IA para gerar o script para subir o projeto utilizando docker
+# Rodando a aplicação
+
+## Opção 1 — Docker (recomendado)
+
+A forma mais simples de executar o projeto é utilizando Docker. O `docker-compose.yml` automatiza a configuração do ambiente, instalação das dependências, build dos assets, configuração do banco de dados e inicialização dos serviços.
+
+### 1. Subir os containers
+
+Execute:
+
+```bash
+docker-compose up
+```
+
+O processo de inicialização realiza automaticamente:
+
+* Instalação das extensões PHP necessárias; 
+* Configuração do Node.js 22; 
+* Instalação do Composer; 
+* Execução do `composer install`; 
+* Execução do `npm install`; 
+* Build dos assets através do `npm run build`; 
+* Criação do banco SQLite em `database/database.sqlite`; 
+* Execução das migrations e seeders através de `php artisan migrate:refresh --seed`; 
+* Inicialização do servidor Laravel na porta `8000`; 
+* Inicialização do worker da fila através de `queue:listen`; 
+* Inicialização do Vite Dev Server na porta `5173`.
+
+### 2. Acessar a aplicação
+
+Após a inicialização dos containers, a aplicação estará disponível em:
+
+```text
+http://localhost:8000
+```
+
+### Serviços executados
+
+```text
+Docker Compose
+│
+├── Laravel
+│   └── http://localhost:8000
+│
+├── Queue Worker
+│   └── queue:listen
+│
+└── Vite
+    └── http://localhost:5173
+```
+
+Com isso, deixei todo o ambiente necessário para executar e testar a aplicação sendo  configurado automaticamente pelo Docker.
+
+## Opção 2 — Ambiente Local (sem Docker)
+
+Também é possível executar o projeto diretamente no ambiente local, sem utilizar Docker.
+
+### Requisitos
+
+* **PHP 8.4+**
+* **Composer**
+* **Node.js 22+**
+* **npm**
+
+### 1. Instalar as dependências
+
+Na raiz do projeto, execute:
+
+```bash
+composer install
+npm install
+```
+
+### 2. Configurar o ambiente
+
+Caso o arquivo `.env` ainda não exista, crie uma cópia do `.env.example` :
+
+```bash
+cp .env.example .env
+```
+
+Em seguida, gere a chave de aplicação do Laravel:
+
+```bash
+php artisan key:generate
+```
+
+### 3. Criar e configurar o banco SQLite
+
+Crie o arquivo do banco de dados:
+
+```bash
+touch database/database.sqlite
+```
+
+Depois, execute as migrations e os seeders:
+
+```bash
+php artisan migrate --seed
+```
+
+#### Execução
+
+**Servidor Laravel:**
+
+```bash
+php artisan serve
+```
+
+```bash
+npm run dev
+```
+
+### 5. Acessar a aplicação
+
+Após iniciar os serviços, a aplicação estará disponível em:
+
+```text
+http://localhost:8000
+```
+
+### Estrutura dos serviços
+
+```text
+Ambiente Local
+│
+├── Laravel
+│   └── http://localhost:8000
+│
+├── Queue Worker
+│   └── queue:listen --tries=1
+│
+└── Vite
+    └── http://localhost:5173
+```
+
+Essa opção permite executar o projeto diretamente no sistema operacional, utilizando as versões locais do PHP, Node.js e demais dependências.

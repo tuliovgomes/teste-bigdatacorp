@@ -88,3 +88,179 @@ Requisição HTTP
         ├─ "clubs"   → exportClubs()   → Club::query()  (filtro campeonato) → lazyById (streaming) → fputcsv → StreamedResponse
         └─ "players" → exportPlayers() → Player::query()+join clubs (filtro campeonato) → lazyById → fputcsv → StreamedResponse
 Não há passo de leitura de JSON aqui — os dois exports leem direto do banco (clubs/players), que já foi populado e sanitizado pelo fluxo de importação (ImportController → ImportClubsFileJob → ImportClubsChunkJob/ImportPlayersChunkJob). Por isso o ExportController não precisa reaplicar validação de data/tipo — ele confia que o que está no banco já é válido, e só se defende contra exceções inesperadas por registro via try/catch + log.
+
+
+Prompt: gere o script do docker compose para subir a aplicação php + npm
+
+Read c:\Users\Tulio Gomes\Desktop\projetos\teste-bigdatacorp\composer.json
+Read c:\Users\Tulio Gomes\Desktop\projetos\teste-bigdatacorp\package.json
+Read c:\Users\Tulio Gomes\Desktop\projetos\teste-bigdatacorp\.env
+Read c:\Users\Tulio Gomes\Desktop\projetos\teste-bigdatacorp\.env.example
+Globpattern: "**/Dockerfile*"
+Found 7 files
+Globpattern: "docker/**"
+No files found
+Read c:\Users\Tulio Gomes\Desktop\projetos\teste-bigdatacorp\vite.config.ts
+Grep "Redis" (in c:\Users\Tulio Gomes\Desktop\projetos\teste-bigdatacorp\app)
+1 line of output
+Read c:\Users\Tulio Gomes\Desktop\projetos\teste-bigdatacorp\docker-compose.yml
+AskUserQuestion
+OUT
+Your questions have been answered: "Que tipo de setup Docker Compose você quer para essa app Laravel + Vue (Inertia)?"="Dev simples (recomendado)". You can now continue with these answers in mind.
+Bash Check database directory contents
+IN
+ls "c:\Users\Tulio Gomes\Desktop\projetos\teste-bigdatacorp\database" 2>&1
+
+OUT
+database.sqlite
+factories
+migrations
+seeders
+Bom, o banco sqlite já existe. Agora vou escrever o docker-compose.yml.
+
+Write c:\Users\Tulio Gomes\Desktop\projetos\teste-bigdatacorp\docker-compose.yml
+44 lines
+Bash Validate docker-compose.yml syntax
+IN
+cd "/c/Users/Tulio Gomes/Desktop/projetos/teste-bigdatacorp" && docker compose config 2>&1 | head -60
+
+OUT
+/usr/bin/bash: line 1: docker: command not found
+PowerShell Validate docker-compose.yml syntax with docker compose config
+IN
+docker compose config 2>&1 | Select-Object -First 60
+
+OUT
+Exit code 1
+docker : O termo 'docker' não é reconhecido como nome de cmdlet, função, arquivo de script ou programa operável.
+Verifique a grafia do nome ou, se um caminho tiver sido incluído, veja se o caminho está correto e tente novamente.
+No linha:1 caractere:302
++ ... $PSStyle.OutputRendering = 'PlainText' } catch {} } }; docker compose ...
++                                                            ~~~~~~
+    + CategoryInfo          : ObjectNotFound: (docker:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+Docker não está disponível neste ambiente para validar, mas a sintaxe YAML está correta. Criei docker-compose.yml com:
+
+app: php:8.3-cli que instala extensões necessárias (pdo_sqlite, mbstring, zip, bcmath), roda composer install, aplica migrations no sqlite existente e sobe php artisan serve na porta 8000.
+npm: node:22-alpine que roda npm install e npm run dev (Vite com HMR) na porta 5173.
+Volumes nomeados para vendor e node_modules, evitando conflito entre binários do container (Linux) e do seu host (Windows).
+Para subir: docker compose up. Como seu .env já tem DB_CONNECTION=sqlite e database/database.sqlite já existe, nenhum container de banco é necessário. Acesse a app em http://localhost:8000.
+
+crie um passo a passo de como rodar a aplicação
+Bash List project root files
+IN
+ls -la
+
+OUT
+total 959
+drwxr-xr-x 1 Tulio Gomes 197121      0 Aug 10 23:53 .
+drwxr-xr-x 1 Tulio Gomes 197121      0 Aug 10 23:33 ..
+drwxr-xr-x 1 Tulio Gomes 197121      0 Aug 10 16:28 .claude
+-rw-r--r-- 1 Tulio Gomes 197121    275 Jul 30 11:35 .editorconfig
+-rw-r--r-- 1 Tulio Gomes 197121   1165 Aug 10 15:18 .env
+-rw-r--r-- 1 Tulio Gomes 197121   1114 Aug 10 23:46 .env.example
+drwxr-xr-x 1 Tulio Gomes 197121      0 Aug 10 23:56 .git
+-rw-r--r-- 1 Tulio Gomes 197121    210 Jul 30 11:35 .gitattributes
+drwxr-xr-x 1 Tulio Gomes 197121      0 Jul 30 11:35 .github
+-rw-r--r-- 1 Tulio Gomes 197121    410 Jul 30 11:35 .gitignore
+-rw-r--r-- 1 Tulio Gomes 197121     20 Jul 30 11:35 .npmrc
+-rw-r--r-- 1 Tulio Gomes 197121     52 Jul 30 11:35 .prettierignore
+-rw-r--r-- 1 Tulio Gomes 197121    503 Jul 30 11:35 .prettierrc
+-rw-r--r-- 1 Tulio Gomes 197121  11376 Aug 10 18:26 IA-prompts.ai
+drwxr-xr-x 1 Tulio Gomes 197121      0 Aug 10 17:40 app
+-rwxr-xr-x 1 Tulio Gomes 197121    425 Jul 30 11:35 artisan
+drwxr-xr-x 1 Tulio Gomes 197121      0 Jul 30 11:35 bootstrap
+-rw-r--r-- 1 Tulio Gomes 197121    491 Jul 30 11:35 components.json
+-rw-r--r-- 1 Tulio Gomes 197121   3664 Aug 10 14:49 composer.json
+-rw-r--r-- 1 Tulio Gomes 197121 435080 Aug 10 14:49 composer.lock
+drwxr-xr-x 1 Tulio Gomes 197121      0 Aug 10 14:50 config
+drwxr-xr-x 1 Tulio Gomes 197121      0 Aug 11 00:00 database
+-rw-r--r-- 1 Tulio Gomes 197121   1476 Aug 10 23:53 docker-compose.yml
+-rw-r--r-- 1 Tulio Gomes 197121   2760 Aug 10 13:47 eslint.config.js
+drwxr-xr-x 1 Tulio Gomes 197121      0 Aug 10 16:54 node_modules
+-rw-r--r-- 1 Tulio Gomes 197121 297485 Aug 10 23:57 package-lock.json
+-rw-r--r-- 1 Tulio Gomes 197121   2128 Jul 30 11:35 package.json
+-rw-r--r-- 1 Tulio Gomes 197121    268 Aug 10 16:25 phpstan.neon
+-rw-r--r-- 1 Tulio Gomes 197121   1322 Jul 30 11:35 phpunit.xml
+-rw-r--r-- 1 Tulio Gomes 197121     28 Jul 30 11:35 pint.json
+-rw-r--r-- 1 Tulio Gomes 197121     61 Jul 30 11:35 pnpm-workspace.yaml
+-rw-r--r-- 1 Tulio Gomes 197121   8229 Aug 10 18:23 project-steps.md
+drwxr-xr-x 1 Tulio Gomes 197121      0 Aug 10 23:50 public
+drwxr-xr-x 1 Tulio Gomes 197121      0 Jul 30 11:35 resources
+drwxr-xr-x 1 Tulio Gomes 197121      0 Jul 30 11:35 routes
+drwxr-xr-x 1 Tulio Gomes 197121      0 Aug 10 13:50 storage
+drwxr-xr-x 1 Tulio Gomes 197121      0 Aug 10 13:50 tests
+-rw-r--r-- 1 Tulio Gomes 197121  12701 Jul 30 11:35 tsconfig.json
+drwxr-xr-x 1 Tulio Gomes 197121      0 Aug 10 14:49 vendor
+-rw-r--r-- 1 Tulio Gomes 197121   1094 Aug 10 23:55 vite.config.ts
+It's a Laravel + Vite (Inertia-style) project with Docker. Let me check the key config files to get accurate details.
+
+Read c:\Users\Tulio Gomes\Desktop\projetos\teste-bigdatacorp\docker-compose.yml
+Read c:\Users\Tulio Gomes\Desktop\projetos\teste-bigdatacorp\.env.example
+Read c:\Users\Tulio Gomes\Desktop\projetos\teste-bigdatacorp\package.json
+Read c:\Users\Tulio Gomes\Desktop\projetos\teste-bigdatacorp\project-steps.md
+Bash Check if .env already has an app key set
+IN
+grep -c "APP_KEY=base64" .env 2>/dev/null; grep "APP_KEY=" .env | cut -c1-15
+
+OUT
+1
+APP_KEY=base64:
+O .env já existe e tem uma APP_KEY gerada. Aqui está o passo a passo:
+
+Opção 1 — Docker (recomendado, mais simples)
+O docker-compose.yml já automatiza tudo: instala dependências PHP/Node, builda os assets, cria o banco SQLite, roda migrations + seeders e sobe os servidores.
+
+Configurar o .env (se ainda não existir):
+
+
+cp .env.example .env
+O projeto já tem um .env com APP_KEY gerada, então esse passo é só necessário em uma cópia nova/limpa do repositório.
+
+Subir o container:
+
+
+docker-compose up
+Isso vai automaticamente:
+
+Instalar extensões PHP (pdo_sqlite, gd, zip, etc.)
+Instalar Node 22 e Composer dentro do container
+Rodar composer install e npm install
+Buildar os assets (npm run build)
+Criar database/database.sqlite e rodar php artisan migrate:refresh --seed
+Subir simultaneamente: servidor Laravel (porta 8000), fila (queue:listen) e Vite dev server (porta 5173)
+Acessar a aplicação: http://localhost:8000
+
+⚠️ Como o command roda migrate:refresh --seed, toda vez que você reiniciar o container ele reseta o banco. Se quiser evitar isso durante desenvolvimento, rode docker-compose up -d uma vez e depois ajuste o comando manualmente (ou entre no container com docker exec para rodar comandos pontuais).
+
+Opção 2 — Ambiente local (sem Docker)
+Requisitos: PHP 8.4+, Composer, Node 22+, npm.
+
+Instalar dependências:
+
+
+composer install
+npm install
+Configurar ambiente (se não existir .env):
+
+
+cp .env.example .env
+php artisan key:generate
+Criar o banco SQLite:
+
+
+touch database/database.sqlite
+php artisan migrate --seed
+(no Windows/PowerShell: New-Item database/database.sqlite -ItemType File)
+
+Rodar tudo junto (servidor + fila + Vite), já configurado no composer.json:
+
+
+composer dev
+Ou individualmente em terminais separados:
+
+
+php artisan serve
+php artisan queue:listen --tries=1
+npm run dev
+Acessar: http://localhost:8000
